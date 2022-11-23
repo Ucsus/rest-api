@@ -64,7 +64,7 @@ public class SingleUserTests {
                 .log().status()
                 .log().body()
                 .statusCode(200)
-                .body("support.text", not("You motherfucker, come on, you little ass… fuck with me, eh?!"));
+                .body("support.text", not("That rug really tied the room together."));
     }
 
     @Test
