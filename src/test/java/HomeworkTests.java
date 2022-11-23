@@ -1,23 +1,14 @@
+import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
-public class SingleUserTests {
-    /*
-        1. Make request to https://reqres.in/api/users/2
-        2. Get response { data: { id: 2,
-        email: "janet.weaver@reqres.in",
-        first_name: "Janet",
-        last_name: "Weaver",
-        avatar: "https://reqres.in/img/faces/2-image.jpg" },
-        support: { url: "https://reqres.in/#support-heading",
-        text: "To keep ReqRes free, contributions towards server costs are appreciated!" } }
-        3. Check first_name is Janet
-    */
+public class HomeworkTests {
     @Test
-    void checkFirstNameTest() {
+    void singleUserTest() {
+        String supportText = "To keep ReqRes free, contributions towards server costs are appreciated!";
         given()
                 .log().uri()
                 .when()
@@ -26,49 +17,62 @@ public class SingleUserTests {
                 .log().status()
                 .log().body()
                 .statusCode(200)
-                .body("data.first_name", is("Janet"));
+                .body("data.id", is(2),
+                        "data.first_name", is("Janet"),
+                        "support.text", is(supportText));
     }
 
     @Test
-    void checkEmailTest() {
+    void registerTest() {
+        String data = "{ \"email\": \"eve.holt@reqres.in\", \"password\": \"pistol\" }";
         given()
                 .log().uri()
+                .contentType(ContentType.JSON)
+                .body(data)
                 .when()
-                .get("https://reqres.in/api/users/2")
+                .post("https://reqres.in/api/register")
                 .then()
                 .log().status()
                 .log().body()
                 .statusCode(200)
-                .body("data.email", is("janet.weaver@reqres.in"));
+                .body("id", is(4),
+                        "token", is("QpwL5tke4Pnpja7X4"));
     }
 
     @Test
-    void check404Test() {
+    void createTest() {
+        String data = "{ \"name\": \"morpheus\", \"job\": \"leader\" }";
         given()
                 .log().uri()
                 .when()
-                .get("https://reqres.in/api/users/20")
+                .contentType(ContentType.JSON)
+                .body(data)
+                .post("https://reqres.in/api/users")
                 .then()
                 .log().status()
                 .log().body()
-                .statusCode(404);
+                .statusCode(201)
+                .body("name", is("morpheus"));
     }
 
     @Test
-    void wrongSupportTextTest() {
+    void registerUnsuccessfulTest() {
+        String data = "{ \"email\": \"sydney@fife\" }";
         given()
                 .log().uri()
                 .when()
-                .get("https://reqres.in/api/users/2")
+                .contentType(ContentType.JSON)
+                .body(data)
+                .post("https://reqres.in/api/register")
                 .then()
                 .log().status()
                 .log().body()
-                .statusCode(200)
-                .body("support.text", not("That rug really tied the room together."));
+                .statusCode(400)
+                .body("error", is("Missing password"));
     }
 
     @Test
-    void checkAvatarTest() {
+    void singleUserAvatarTest() {
         String avatarPath = "https://reqres.in/img/faces/2-image.jpg";
         given()
                 .log().uri()
